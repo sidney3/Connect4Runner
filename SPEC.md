@@ -13,6 +13,7 @@ We will use the following types:
 | Name | Size (bytes) | Description |
 |:-----|:-------------|-------------|
 |uint8 | 1          | Unsigned integer |
+|uint16| 2          | Unsigned integer |
 |uint32| 4          | Unsigned integer |
 |Player | 1          | Enumeration      |
 
@@ -24,11 +25,17 @@ Note: the side `Player1` always goes first.
 
 Each message sent will have a message header at its start. This consists of
 
+| Field | Type | Description |
+|:------|:-----|:------------|
+| Type  | uint8 | See MessageTypes Appendix |
+| MessageLength | uint16 | The total message length, in bytes. Includes the message header |
+
+
 ### GameStart
 
 | Field | Type | Description |
 |:------|:-----|:------------|
-| Type  | uint8 | Always 0. See MessageTypes Appendix |
+| Header | MessageHeader. | See MessageHeader. MessageType = 0 |
 | YourPlayer | Player | Your (as the recipient) assigned player |
 | TimePerMove | uint32_t | Milliseconds that each side will get per move |
 | NumMovesMade | uint8 | The total number of moves made so far in the game. This should be used to decode the next row... |
@@ -39,7 +46,7 @@ Each message sent will have a message header at its start. This consists of
 
 | Field | Type | Description |
 |:------|:-----|:-------|
-| Type  | uint8 | Always 1. See MessageTypes Appendix |
+| Header | MessageHeader | See `MessageHeader`. `MessageType = 1`|
 | Row | uint8 | The row on which to place a piece   |
 
 Note: this is a bidirectional message. The engine runner will send this to engines, and engines will have to send it back to describe what move they would like to make. 
