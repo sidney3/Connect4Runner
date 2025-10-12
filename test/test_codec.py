@@ -27,6 +27,9 @@ class CodecTest(unittest.TestCase):
 
         move = decode_generic(move_buf)
 
+        move_i_wanna_make = MakeMove.from_move(Move(4))
+        print(move_i_wanna_make.encode())
+
         assert isinstance(move, MakeMove)
 
         self.assertEqual(move.move, Move(6))

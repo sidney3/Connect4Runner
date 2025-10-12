@@ -5,6 +5,12 @@ from typing import Self, List
 from enum import Enum
 from typing import BinaryIO, Union
 
+"""
+Example Usage:
+
+# To make a move
+"""
+
 class DecodeError(Exception):
     pass
 
@@ -25,6 +31,7 @@ class EncodeableEnum(Enum):
         return cls(struct.unpack(cls.FORMAT_STRING(), data.read(struct.calcsize(cls.FORMAT_STRING())))[0])
 
 
+
 class MessageType(EncodeableEnum):
     GAME_START = 0
     MAKE_MOVE = 1
@@ -32,7 +39,6 @@ class MessageType(EncodeableEnum):
     @staticmethod
     def FORMAT_STRING() -> str:
         return "<B"
-
 
 class Player(EncodeableEnum):
     PLAYER_1 = b'1'
@@ -48,6 +54,7 @@ class Move:
     column: int
 
     FORMAT_STRING = "<B"
+    LENGTH = struct.calcsize(FORMAT_STRING)
 
     def encode(self) -> bytes:
         return struct.pack(self.FORMAT_STRING, self.column)
@@ -55,6 +62,7 @@ class Move:
     @classmethod
     def decode(cls, data: BinaryIO):
         return cls(column = struct.unpack(cls.FORMAT_STRING, data.read(struct.calcsize(cls.FORMAT_STRING)))[0])
+
 
 
 @dataclass
@@ -81,6 +89,11 @@ class Header:
 class MakeMove:
     header: Header
     move: Move
+
+    @staticmethod
+    def from_move(move: Move):
+        hdr = Header(msg_type = MessageType.MAKE_MOVE, msg_length = Header.LENGTH + Move.LENGTH)
+        return MakeMove(header=hdr, move = move)
 
     def encode(self) -> bytes:
         return self.header.encode() + self.move.encode()
