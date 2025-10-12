@@ -1,0 +1,24 @@
+{
+  "include": ["src"],
+
+  "extraPaths": [
+    "bazel-bin",
+    "bazel-out",
+    "src"
+  ],
+
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Darwin",   
+
+  "typeCheckingMode": "strict",
+
+  "reportMissingImports": true,
+  "reportUnusedImport": "warning",
+  "reportUnknownMemberType": "warning",
+
+  "exclude": [
+    "**/__pycache__",
+    "bazel-*/*_pb2.py",
+    "bazel-*/*_pb2_grpc.py"
+  ]
+}

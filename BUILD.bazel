@@ -1,4 +1,28 @@
+py_library(
+  name = "lib",
+  srcs = [
+    "src/__init__.py",
+    "src/codec.py",
+    "src/board.py",
+  ],
+)
+
 py_binary(
   name = "main",
-  srcs = glob(["src/*.py"]),
+  srcs = [
+    "src/main.py",
+  ],
+  deps = [
+    ":lib"
+  ]
+)
+
+py_test(
+    name = "test_codec",
+    srcs = [
+        "test/test_codec.py",
+    ],
+    deps = [
+        ":lib",         
+    ],
 )
