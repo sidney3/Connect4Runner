@@ -14,9 +14,9 @@ We will use the following types:
 |:-----|:-------------|-------------|
 |uint8 | 1          | Unsigned integer |
 |uint32| 4          | Unsigned integer |
-|Color | 1          | Enumeration      |
+|Player | 1          | Enumeration      |
 
-Note: the side `Red` always goes first.
+Note: the side `Player1` always goes first.
 
 ## Messages
 
@@ -29,7 +29,7 @@ Each message sent will have a message header at its start. This consists of
 | Field | Type | Description |
 |:------|:-----|:------------|
 | Type  | uint8 | Always 0. See MessageTypes Appendix |
-| YourColor | Color | Your (as the recipient) assigned color |
+| YourPlayer | Player | Your (as the recipient) assigned player |
 | TimePerMove | uint32_t | Milliseconds that each side will get per move |
 | NumMovesMade | uint8 | The total number of moves made so far in the game. This should be used to decode the next row... |
 | MovesMade | uint8[] | A list of moves that have been made. Each integer n denotes the side to move placing a piece on the nth column, 0 indexed |
@@ -56,12 +56,14 @@ The engine runner has no tolerance for illegal messages / moves. For simplicity,
 
 ## Appendix
 
-### Color
+### Player
 
 | Value | Meaning |
 |:------|:-----|
-| 'R'   | Red     |
-| 'Y'   | Yellow  |
+| '1'   | Player1 |
+| '2'   | Player2 |
+
+Note: for readability this is the ascii '1'.
 
 ### MessageTypes
 
