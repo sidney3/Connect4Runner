@@ -47,7 +47,7 @@ Each message sent will have a message header at its start. This consists of
 | Field | Type | Description |
 |:------|:-----|:-------|
 | Header | MessageHeader | See `MessageHeader`. `MessageType = 1`|
-| Row | uint8 | The row on which to place a piece   |
+| Column | uint8 | The row on which to place a piece   |
 
 Note: this is a bidirectional message. The engine runner will send this to engines, and engines will have to send it back to describe what move they would like to make. 
 
