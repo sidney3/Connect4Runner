@@ -119,14 +119,25 @@ class GameStartMsg:
 
 AnyMessage = Union[Move, GameParams]
 
-class AsyncBuffer(Protocol):
-    async def read(self, len: int) -> bytes:
-        ...
 
-def decode_generic(data: bytes) -> AnyMessage:
+def decode(data: bytes) -> AnyMessage:
     buffer = BytesIO(data)
     hdr = Header.decode(buffer.read(Header.LENGTH))
     rest = buffer.read(hdr.remaining_message_length())
+
+    match hdr.msg_type:
+        case MessageType.GAME_START:
+            return GameStartMsg.decode(hdr, rest).params
+        case MessageType.MAKE_MOVE:
+            return MakeMove.decode(hdr, rest).move
+
+class AsyncBuffer(Protocol):
+    async def read(self, n: int) -> bytes:
+        ...
+
+async def async_decode(buffer: AsyncBuffer) -> AnyMessage:
+    hdr = Header.decode(await buffer.read(Header.LENGTH))
+    rest = await buffer.read(hdr.remaining_message_length())
 
     match hdr.msg_type:
         case MessageType.GAME_START:
