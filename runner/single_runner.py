@@ -1,0 +1,79 @@
+import argparse
+import sys
+import runner.engine_container as engine_container
+import engine.game_board as game_board 
+from datetime import timedelta
+import runner.codec as codec
+
+def main(args: argparse.Namespace):
+    print(f'{args=}')
+    timeout = timedelta(milliseconds=args.timeout)
+
+    players = {
+        codec.Player.PLAYER_1: engine_container.EngineContainer(timeout, args.player1),
+        codec.Player.PLAYER_2: engine_container.EngineContainer(timeout, args.player2),
+    }
+
+    for player_type, player in players.items():
+        player.send_game_params(codec.Params(
+            your_player = player_type,
+            time_per_move = timeout,
+            moves = []
+        ))
+
+
+    board = game_board.GameBoard()
+
+    while board.state() == game_board.GameState.ONGOING:
+        friendly = players[board.side_to_move()]
+        enemy = players[game_board.opposing_player(board.side_to_move())]
+
+        move_made = friendly.read_message()
+
+        if isinstance(move_made, engine_container.Timeout):
+            print(F"Player {board.side_to_move()} timed out")
+            break
+
+        print(f"Player {board.side_to_move()} made move {move_made}")
+
+        assert isinstance(move_made, codec.Move)
+
+        board.make_move(move_made)
+
+        if board.state() == game_board.GameState.ONGOING:
+            enemy.send_move(move_made)
+
+    print(f"Game over. Result: {board.state()}")
+
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    parser.add_argument("-t", "--timeout",
+                        type=int,
+                        default = 100,
+                        help = "The allowed delay between receiving and responding \
+                        to a message"
+
+    )
+    parser.add_argument("--player1", "-p1",
+            nargs="+",
+            required=True,
+            help="""\
+            Executable to run. 
+            Can be more than one string. 
+            E.x. python3 my_connect4_engine.py")
+            """)
+
+    parser.add_argument("--player2", "-p2",
+            required=True,
+            nargs="+",
+            help="See --player1")
+
+    return parser.parse_args()
+if __name__ == "__main__":
+    main(parse_args())
+

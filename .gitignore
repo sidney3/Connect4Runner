@@ -1,2 +1,4 @@
 MODULE.bazel.lock
 bazel-*
+venv
+.venv

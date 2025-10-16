@@ -6,16 +6,6 @@ from enum import Enum
 from typing import BinaryIO, Union
 from io import BytesIO
 
-"""
-Example Usage:
-
-# To read a message
-stdin_line = however_the_hell_you_read_a_line_of_stdin()
-
-
-
-"""
-
 class MessageType(Enum):
     GAME_START = 0
     MAKE_MOVE = 1
@@ -48,7 +38,7 @@ class Header:
         return self.msg_length - self.LENGTH
     
 @dataclass
-class MakeMove:
+class MoveMsg:
     header: Header
     move: Move
 
@@ -56,27 +46,27 @@ class MakeMove:
     LENGTH = Header.LENGTH + struct.calcsize(FORMAT_STRING)
 
     @staticmethod
-    def from_move(move: Move):
-        hdr = Header(msg_type = MessageType.MAKE_MOVE, msg_length = MakeMove.LENGTH)
-        return MakeMove(header=hdr, move = move)
+    def make(move: Move):
+        hdr = Header(msg_type = MessageType.MAKE_MOVE, msg_length = MoveMsg.LENGTH)
+        return MoveMsg(header=hdr, move = move)
 
     def encode(self) -> bytes:
-        return self.header.encode() + struct.pack(MakeMove.FORMAT_STRING, self.move.column)
+        return self.header.encode() + struct.pack(MoveMsg.FORMAT_STRING, self.move.column)
 
     @classmethod
     def decode(cls, header: Header, data: bytes) -> Self:
-        return cls(header=header, move=Move(struct.unpack(MakeMove.FORMAT_STRING, data)[0]))
+        return cls(header=header, move=Move(struct.unpack(MoveMsg.FORMAT_STRING, data)[0]))
 
 @dataclass 
-class GameParams:
+class Params:
     your_player: Player
     time_per_move: datetime.timedelta
     moves: List[Move] 
 
 @dataclass
-class GameStartMsg:
+class ParamsMsg:
     header: Header
-    params: GameParams
+    params: Params
 
     FIXED_FORMAT_STRING = "<cLB"
     FIXED_LENGTH = struct.calcsize(FIXED_FORMAT_STRING)
@@ -86,9 +76,9 @@ class GameStartMsg:
         return f"<{num_moves}s"
 
     @staticmethod 
-    def from_game_params(params: GameParams):
-        msg_length = Header.LENGTH + GameStartMsg.FIXED_LENGTH + len(params.moves)
-        return GameStartMsg(
+    def make(params: Params):
+        msg_length = Header.LENGTH + ParamsMsg.FIXED_LENGTH + len(params.moves)
+        return ParamsMsg(
             header = Header(msg_type=MessageType.GAME_START, msg_length=msg_length),
             params = params
         )
@@ -96,7 +86,7 @@ class GameStartMsg:
     def encode(self) -> bytes:
         num_moves = len(self.params.moves)
         return self.header.encode() \
-            + struct.pack(GameStartMsg.FIXED_FORMAT_STRING,
+            + struct.pack(ParamsMsg.FIXED_FORMAT_STRING,
                            self.params.your_player.value, 
                            int(self.params.time_per_move.total_seconds() * 1000),
                            num_moves) \
@@ -114,11 +104,10 @@ class GameStartMsg:
         moves: List[Move] = [Move(b) for b in struct.unpack(variable_fmt, 
                      buf.read(variable_length))[0]]
 
-        return cls(header=header, params=GameParams(your_player=Player(your_player), time_per_move = time_per_move, moves=moves))
+        return cls(header=header, params=Params(your_player=Player(your_player), time_per_move = time_per_move, moves=moves))
 
 
-AnyMessage = Union[Move, GameParams]
-
+AnyMessage = Union[Move, Params]
 
 def decode(data: bytes) -> AnyMessage:
     buffer = BytesIO(data)
@@ -127,20 +116,21 @@ def decode(data: bytes) -> AnyMessage:
 
     match hdr.msg_type:
         case MessageType.GAME_START:
-            return GameStartMsg.decode(hdr, rest).params
+            return ParamsMsg.decode(hdr, rest).params
         case MessageType.MAKE_MOVE:
-            return MakeMove.decode(hdr, rest).move
+            return MoveMsg.decode(hdr, rest).move
 
 class AsyncBuffer(Protocol):
-    async def read(self, n: int) -> bytes:
+    async def readexactly(self, n: int) -> bytes:
         ...
 
 async def async_decode(buffer: AsyncBuffer) -> AnyMessage:
-    hdr = Header.decode(await buffer.read(Header.LENGTH))
-    rest = await buffer.read(hdr.remaining_message_length())
+    hdr_bytes = await buffer.readexactly(Header.LENGTH)
+    hdr = Header.decode(hdr_bytes)
+    rest = await buffer.readexactly(hdr.remaining_message_length())
 
     match hdr.msg_type:
         case MessageType.GAME_START:
-            return GameStartMsg.decode(hdr, rest).params
+            return ParamsMsg.decode(hdr, rest).params
         case MessageType.MAKE_MOVE:
-            return MakeMove.decode(hdr, rest).move
+            return MoveMsg.decode(hdr, rest).move

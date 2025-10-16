@@ -1,7 +1,7 @@
 import asyncio
 import subprocess
 from typing import TypeVar, List, Optional, Coroutine, Any, Union
-import src.codec as codec
+import runner.codec as codec
 from datetime import timedelta
 
 T = TypeVar("T")
@@ -9,7 +9,7 @@ T = TypeVar("T")
 class Timeout:
     pass
 
-class EngineRunner:
+class EngineContainer:
     def __init__(self, timeout: Optional[timedelta], args: List[str]):
         self._loop = asyncio.new_event_loop()
         self._timeout = timeout
@@ -33,21 +33,22 @@ class EngineRunner:
         reader = self._engine.stdout
         assert reader
 
-        return self._loop.run_until_complete(self._with_timeout(codec.async_decode(reader)))
+        with_tm = self._with_timeout(codec.async_decode(reader))
+
+        return self._loop.run_until_complete(with_tm)
 
 
     def send_move(self, to_move: codec.Move): 
         writer = self._engine.stdin
         assert writer
 
-        msg = codec.MakeMove.from_move(to_move).encode()
-        writer.write(msg)
-        return self._loop.run_until_complete(self._with_timeout(writer.drain()))
+        writer.write(codec.MoveMsg.make(to_move).encode())
+        self._loop.run_until_complete(writer.drain())
 
-    def send_game_params(self, to_make: codec.GameParams):
+    def send_game_params(self, to_make: codec.Params):
         writer = self._engine.stdin
         assert writer
 
-        msg = codec.GameStartMsg.from_game_params(to_make).encode()
+        msg = codec.ParamsMsg.make(to_make).encode()
         writer.write(msg)
-        return self._loop.run_until_complete(self._with_timeout(writer.drain()))
+        return self._loop.run_until_complete(writer.drain())

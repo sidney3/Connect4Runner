@@ -1,28 +1,24 @@
 py_library(
-  name = "lib",
+  name = "runner",
   srcs = [
     "src/__init__.py",
     "src/codec.py",
     "src/board.py",
+    "src/engine_base.py",
+    "src/engine_main.py",
+    "src/engine_runner.py",
+  ],
+  visibility = [
+    "//visibility:public"
   ],
 )
 
 py_binary(
-  name = "main",
+  name = "protocol_tester",
   srcs = [
-    "src/main.py",
+    "src/protocol_tester.py"
   ],
   deps = [
-    ":lib"
-  ]
-)
-
-py_test(
-    name = "test_codec",
-    srcs = [
-        "test/test_codec.py",
-    ],
-    deps = [
-        ":lib",         
-    ],
+    ":lib",
+  ],
 )

@@ -1,0 +1,26 @@
+py_library(
+  name = "engine",
+  srcs = [
+    "__init__.py",
+    "engine_base.py",
+    "engine_main.py",
+    "game_board.py",
+  ],
+  deps = [
+    "//runner"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+py_binary(
+  name = "random_engine",
+  srcs = [
+    "random_engine.py"
+  ],
+  deps = [
+    "//runner",
+    ":engine"
+  ],
+)

@@ -1,0 +1,12 @@
+py_test(
+    name = "test_codec",
+    srcs = [
+        "test_codec.py",
+    ],
+    deps = [
+        "//runner",         
+    ],
+    visibility = [
+      "//visibility:public"
+    ],
+)

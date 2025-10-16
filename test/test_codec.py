@@ -2,7 +2,7 @@ import unittest
 import struct
 import datetime
 from io import BytesIO
-import src.codec as codec
+import runner.codec as codec
 import sys
 
 assert sys.byteorder == 'little'
@@ -27,20 +27,20 @@ class CodecTest(unittest.TestCase):
 
         self.assertEqual(move, codec.Move(6))
 
-        self.assertEqual(codec.MakeMove.from_move(move).encode(), move_raw)
+        self.assertEqual(codec.MoveMsg.make(move).encode(), move_raw)
 
     def test_game_start(self):
         ms_per_move = 100
         ms_per_move_encoded = struct.pack('<L', ms_per_move)
         game_start = b'\x00\x0C\x00\x31' + ms_per_move_encoded + b'\x03\x01\x00\x02'
 
-        game_params= codec.decode(game_start)
+        game_params = codec.decode(game_start)
 
-        assert isinstance(game_params, codec.GameParams)
+        assert isinstance(game_params, codec.Params)
         self.assertAlmostEqual(game_params.time_per_move.total_seconds() * 1000, ms_per_move, places=3)
         self.assertEqual(game_params.moves, [codec.Move(1), codec.Move(0), codec.Move(2)])
         self.assertEqual(game_params.your_player, codec.Player.PLAYER_1)
-        self.assertEqual(codec.GameStartMsg.from_game_params(game_params).encode(), game_start)
+        self.assertEqual(codec.ParamsMsg.make(game_params).encode(), game_start)
 
 
 if __name__ == "__main__":
