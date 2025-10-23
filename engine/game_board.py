@@ -45,6 +45,41 @@ class GameBoard:
     def side_to_move(self):
         return self._side_to_move
 
+    def __str__(self):
+        """Return a string representation of the Connect 4 board with game results."""
+        lines: List[str] = []
+        lines.append("")
+        for row in range(NUM_ROWS):
+            line = "│"
+            for col in range(NUM_COLS):
+                piece = self.piece_at(NUM_ROWS - 1 - row, col)  # Reverse row order for display
+                if piece is None:
+                    line += " ."
+                elif piece == Player.PLAYER_1:
+                    line += " X"
+                elif piece == Player.PLAYER_2:
+                    line += " O"
+                else:
+                    line += f" {piece}"
+            line += " │"
+            lines.append(line)
+        lines.append("└───────────────┘")
+        lines.append("  0 1 2 3 4 5 6")
+
+        # Add game result messages if the game has ended
+        if self._state == GameState.PLAYER_1_WIN:
+            lines.append("")
+            lines.append("🎉 🏆 PLAYER 1 (X) WINS! 🏆 🎉")
+        elif self._state == GameState.PLAYER_2_WIN:
+            lines.append("")
+            lines.append("🎉 🏆 PLAYER 2 (O) WINS! 🏆 🎉")
+        elif self._state == GameState.DRAW:
+            lines.append("")
+            lines.append("🤝 It's a DRAW! 🤝")
+
+        return "\n".join(lines)
+
+
     def make_move(self, move: Move):
         assert move.column < NUM_COLS
         assert self._state == GameState.ONGOING
@@ -91,4 +126,3 @@ class GameBoard:
             self._state = GameState.DRAW
         else:
             self.flip_side_to_move()
-

@@ -1,7 +1,6 @@
 import argparse
-import sys
 import runner.engine_container as engine_container
-import engine.game_board as game_board 
+import engine.game_board as game_board
 from datetime import timedelta
 import runner.codec as codec
 
@@ -34,16 +33,16 @@ def main(args: argparse.Namespace):
             print(F"Player {board.side_to_move()} timed out")
             break
 
-        print(f"Player {board.side_to_move()} made move {move_made}")
-
         assert isinstance(move_made, codec.Move)
 
         board.make_move(move_made)
+        player_name = "Player 1 (X)" if board.side_to_move() == codec.Player.PLAYER_1 else "Player 2 (O)"
+        print(f"\n🎯 {player_name} places a piece in column {move_made.column}")
+
+        print(f"{board}")
 
         if board.state() == game_board.GameState.ONGOING:
             enemy.send_move(move_made)
-
-    print(f"Game over. Result: {board.state()}")
 
 
 
@@ -63,8 +62,8 @@ def parse_args():
             nargs="+",
             required=True,
             help="""\
-            Executable to run. 
-            Can be more than one string. 
+            Executable to run.
+            Can be more than one string.
             E.x. python3 my_connect4_engine.py")
             """)
 
@@ -76,4 +75,3 @@ def parse_args():
     return parser.parse_args()
 if __name__ == "__main__":
     main(parse_args())
-

@@ -29,7 +29,7 @@ class EngineContainer:
         else:
             return await coro
 
-    def read_message(self): 
+    def read_message(self):
         reader = self._engine.stdout
         assert reader
 
@@ -38,7 +38,7 @@ class EngineContainer:
         return self._loop.run_until_complete(with_tm)
 
 
-    def send_move(self, to_move: codec.Move): 
+    def send_move(self, to_move: codec.Move):
         writer = self._engine.stdin
         assert writer
 
