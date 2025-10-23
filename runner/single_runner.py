@@ -47,8 +47,6 @@ def main(args: argparse.Namespace):
                 print(f"Player {board.side_to_move()} timed out")
                 break
 
-            print(f"Player {board.side_to_move()} made move {move_made}")
-
             assert isinstance(move_made, codec.Move)
 
             board.make_move(move_made)
