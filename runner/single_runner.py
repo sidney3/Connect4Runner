@@ -1,7 +1,8 @@
 import argparse
 import sys
+import signal
 import runner.engine_container as engine_container
-import engine.game_board as game_board 
+import engine.game_board as game_board
 from datetime import timedelta
 import runner.codec as codec
 
@@ -14,6 +15,17 @@ def main(args: argparse.Namespace):
         codec.Player.PLAYER_2: engine_container.EngineContainer(timeout, args.player2),
     }
 
+    def signal_handler(signum, frame):
+        """Handle SIGINT and SIGTERM by cleaning up engine processes."""
+        print(f"\nReceived signal {signum}, cleaning up engine processes...")
+        for player in players.values():
+            player.cleanup()
+        sys.exit(0)
+
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     for player_type, player in players.items():
         player.send_game_params(codec.Params(
             your_player = player_type,
@@ -24,26 +36,31 @@ def main(args: argparse.Namespace):
 
     board = game_board.GameBoard()
 
-    while board.state() == game_board.GameState.ONGOING:
-        friendly = players[board.side_to_move()]
-        enemy = players[game_board.opposing_player(board.side_to_move())]
+    try:
+        while board.state() == game_board.GameState.ONGOING:
+            friendly = players[board.side_to_move()]
+            enemy = players[game_board.opposing_player(board.side_to_move())]
 
-        move_made = friendly.read_message()
+            move_made = friendly.read_message()
 
-        if isinstance(move_made, engine_container.Timeout):
-            print(F"Player {board.side_to_move()} timed out")
-            break
+            if isinstance(move_made, engine_container.Timeout):
+                print(f"Player {board.side_to_move()} timed out")
+                break
 
-        print(f"Player {board.side_to_move()} made move {move_made}")
+            print(f"Player {board.side_to_move()} made move {move_made}")
 
-        assert isinstance(move_made, codec.Move)
+            assert isinstance(move_made, codec.Move)
 
-        board.make_move(move_made)
+            board.make_move(move_made)
 
-        if board.state() == game_board.GameState.ONGOING:
-            enemy.send_move(move_made)
+            if board.state() == game_board.GameState.ONGOING:
+                enemy.send_move(move_made)
 
-    print(f"Game over. Result: {board.state()}")
+        print(f"Game over. Result: {board.state()}")
+    finally:
+        # Ensure cleanup happens regardless of how the game ends
+        for player in players.values():
+            player.cleanup()
 
 
 
@@ -63,8 +80,8 @@ def parse_args():
             nargs="+",
             required=True,
             help="""\
-            Executable to run. 
-            Can be more than one string. 
+            Executable to run.
+            Can be more than one string.
             E.x. python3 my_connect4_engine.py")
             """)
 
@@ -76,4 +93,3 @@ def parse_args():
     return parser.parse_args()
 if __name__ == "__main__":
     main(parse_args())
-

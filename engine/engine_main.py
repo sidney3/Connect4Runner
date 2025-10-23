@@ -7,7 +7,11 @@ def push_move(engine: EngineBase):
     move = engine.get_move()
     engine.on_move(move)
     sys.stdout.buffer.write(codec.MoveMsg.make(move).encode())
-    sys.stdout.flush()
+    try:
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # Engine process is being terminated, exit gracefully
+        sys.exit(0)
 
 def engine_main(engine_cls: type[EngineBase]):
     engine: Optional[engine_cls] = None

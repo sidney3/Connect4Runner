@@ -76,7 +76,7 @@ class GameBoard:
                 cur_row += row_delta
                 cur_col += col_delta
             player_wins = player_wins or streak >= 4
-        
+
         if player_wins:
             if self._side_to_move == Player.PLAYER_1:
                 self._state = GameState.PLAYER_1_WIN
@@ -86,4 +86,3 @@ class GameBoard:
             self._state = GameState.DRAW
         else:
             self.flip_side_to_move()
-

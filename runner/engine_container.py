@@ -29,7 +29,7 @@ class EngineContainer:
         else:
             return await coro
 
-    def read_message(self): 
+    def read_message(self):
         reader = self._engine.stdout
         assert reader
 
@@ -38,7 +38,7 @@ class EngineContainer:
         return self._loop.run_until_complete(with_tm)
 
 
-    def send_move(self, to_move: codec.Move): 
+    def send_move(self, to_move: codec.Move):
         writer = self._engine.stdin
         assert writer
 
@@ -52,3 +52,36 @@ class EngineContainer:
         msg = codec.ParamsMsg.make(to_make).encode()
         writer.write(msg)
         return self._loop.run_until_complete(writer.drain())
+
+    def cleanup(self):
+        """Properly terminate the engine subprocess and cleanup resources."""
+        if self._engine and self._engine.returncode is None:
+            try:
+                # Close stdin to signal the engine to terminate
+                if self._engine.stdin:
+                    self._engine.stdin.close()
+
+                # Wait for the process to terminate gracefully
+                try:
+                    self._loop.run_until_complete(asyncio.wait_for(self._engine.wait(), timeout=1.0))
+                except asyncio.TimeoutError:
+                    # Force kill if it doesn't terminate gracefully
+                    self._engine.terminate()
+                    try:
+                        self._loop.run_until_complete(self._engine.wait())
+                    except:
+                        pass  # Process already terminated
+
+                # Close stdout if it's still open
+                if self._engine.stdout:
+                    self._engine.stdout.close()
+            except Exception:
+                # If cleanup fails, just force kill the process
+                try:
+                    self._engine.terminate()
+                except:
+                    pass
+
+    def __del__(self):
+        """Ensure cleanup happens when the container is garbage collected."""
+        self.cleanup()
