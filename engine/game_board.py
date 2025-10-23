@@ -54,35 +54,40 @@ class GameBoard:
 
         self.columns[move.column].append(self._side_to_move)
 
-        directions = (
-            (1,0), (-1, 0), (0, 1), (0, -1),
-            (1, 1), (1, -1), (-1, 1), (-1,-1)
+        planes = (
+            (1, 0), (1,1), (0,1)
         )
 
-        def streak_continues(row: int, col: int) -> bool:
+        def streak_continues(cur_row: int, cur_col: int) -> bool:
             if not (cur_row >= 0 and cur_row < NUM_ROWS and cur_col >= 0 and cur_col < NUM_COLS):
                 return False
 
-            piece = self.piece_at(row, col)
+            piece = self.piece_at(cur_row, cur_col)
             return piece != None and piece == self._side_to_move
 
-        player_wins = False
-        for row_delta, col_delta in directions:
+        def streak_in_direction(row_delta: int, col_delta: int) -> int:
             cur_row, cur_col = start_row, start_col
+
             streak = 0
 
-            while streak_continues(cur_row, cur_col):
-                streak += 1
+            while(streak_continues(cur_row, cur_col)):
                 cur_row += row_delta
                 cur_col += col_delta
-            player_wins = player_wins or streak >= 4
+
+            return streak
+
+        player_wins = False
+
+        for r, c in planes:
+            total_streak = streak_in_direction(r, c) + streak_in_direction(-r, -c) - 1
+            player_wins = player_wins or total_streak >= 4
         
         if player_wins:
             if self._side_to_move == Player.PLAYER_1:
                 self._state = GameState.PLAYER_1_WIN
             else:
                 self._state = GameState.PLAYER_2_WIN
-        elif all([len(col) == NUM_COLS for col in self.columns]):
+        elif all([len(col) == NUM_ROWS for col in self.columns]):
             self._state = GameState.DRAW
         else:
             self.flip_side_to_move()
