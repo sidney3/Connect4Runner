@@ -6,19 +6,23 @@ from datetime import timedelta
 
 T = TypeVar("T")
 
+
 class Timeout:
     pass
+
 
 class EngineContainer:
     def __init__(self, timeout: Optional[timedelta], args: List[str]):
         self._loop = asyncio.new_event_loop()
         self._timeout = timeout
 
-        self._engine = self._loop.run_until_complete(asyncio.create_subprocess_exec(
-            *args,
-            stdin = asyncio.subprocess.PIPE,
-            stdout = asyncio.subprocess.PIPE,
-        ))
+        self._engine = self._loop.run_until_complete(
+            asyncio.create_subprocess_exec(
+                *args,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+            )
+        )
 
     async def _with_timeout(self, coro: Coroutine[Any, Any, T]):
         if self._timeout:
@@ -36,7 +40,6 @@ class EngineContainer:
         with_tm = self._with_timeout(codec.async_decode(reader))
 
         return self._loop.run_until_complete(with_tm)
-
 
     def send_move(self, to_move: codec.Move):
         writer = self._engine.stdin

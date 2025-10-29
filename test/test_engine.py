@@ -2,6 +2,7 @@ from engine.game_board import GameBoard, Coord, GameState
 from runner.codec import Move, Player
 import unittest
 
+
 class EngineTest(unittest.TestCase):
     def test_straight_victory(self):
         b = GameBoard()
@@ -44,7 +45,6 @@ class EngineTest(unittest.TestCase):
         b.make_move(Move(3))
 
         self.assertEqual(b.state(), GameState.PLAYER_1_WIN)
-
 
 
 if __name__ == "__main__":

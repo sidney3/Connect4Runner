@@ -3,14 +3,17 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Tuple
 
+
 class GameState(Enum):
     DRAW = 0
     PLAYER_1_WIN = 1
     PLAYER_2_WIN = 2
     ONGOING = 3
 
+
 NUM_COLS = 7
 NUM_ROWS = 6
+
 
 def opposing_player(player: Player):
     if player == Player.PLAYER_1:
@@ -18,10 +21,12 @@ def opposing_player(player: Player):
     else:
         return Player.PLAYER_1
 
+
 @dataclass
 class Delta:
     row_delta: int
     col_delta: int
+
 
 @dataclass
 class Coord:
@@ -32,14 +37,19 @@ class Coord:
         return Coord(row=self.row + d.row_delta, col=self.col + d.col_delta)
 
     def in_bounds(self):
-        return self.row >= 0 and self.row < NUM_ROWS and self.col >= 0 and self.col < NUM_COLS
+        return (
+            self.row >= 0
+            and self.row < NUM_ROWS
+            and self.col >= 0
+            and self.col < NUM_COLS
+        )
 
 
 class GameBoard:
     def __init__(self):
         self._state = GameState.ONGOING
         self.columns: List[List[Player]] = [[] for _ in range(NUM_COLS)]
-        assert(len(self.columns) == NUM_COLS)
+        assert len(self.columns) == NUM_COLS
 
         self._side_to_move = Player.PLAYER_1
 
@@ -70,7 +80,9 @@ class GameBoard:
         for row in range(NUM_ROWS):
             line = "│"
             for col in range(NUM_COLS):
-                piece = self.piece_at(Coord(row = NUM_ROWS - 1 - row, col = col))  # Reverse row order for display
+                piece = self.piece_at(
+                    Coord(row=NUM_ROWS - 1 - row, col=col)
+                )  # Reverse row order for display
                 if piece is None:
                     line += " ."
                 elif piece == Player.PLAYER_1:
@@ -97,12 +109,8 @@ class GameBoard:
 
         return "\n".join(lines)
 
-
     def _check_win(self, pos: Coord):
-        planes = (
-            Delta(0, 1), Delta(1, 0), 
-            Delta(1, 1), Delta(-1, -1)
-    )
+        planes = (Delta(0, 1), Delta(1, 0), Delta(1, 1), Delta(-1, -1))
 
         def check_for_win(start_pos: Coord, delta: Delta):
             def streak_continues(pos: Coord) -> bool:
@@ -123,8 +131,10 @@ class GameBoard:
 
         def check_plane(plane: Delta):
             for left_shift in range(0, 5):
-                start = Coord(row = pos.row + left_shift * -plane.row_delta,
-                              col = pos.col + left_shift * -plane.col_delta)
+                start = Coord(
+                    row=pos.row + left_shift * -plane.row_delta,
+                    col=pos.col + left_shift * -plane.col_delta,
+                )
 
                 if check_for_win(start, plane):
                     return True
@@ -140,7 +150,7 @@ class GameBoard:
 
         self.columns[move.column].append(self._side_to_move)
 
-        if self._check_win(Coord(row = start_row, col = start_col)):
+        if self._check_win(Coord(row=start_row, col=start_col)):
             if self._side_to_move == Player.PLAYER_1:
                 self._state = GameState.PLAYER_1_WIN
             else:
