@@ -5,6 +5,7 @@ from engine.game_board import GameBoard, GameState, NUM_ROWS, NUM_COLS
 
 from random import randrange
 
+
 class RandomEngine(EngineBase):
     def make_move(self, move: codec.Move):
         self._board.make_move(move)
@@ -22,7 +23,6 @@ class RandomEngine(EngineBase):
 
     def get_friendly(self):
         return self._friendly
-
 
     @classmethod
     def make(cls, params: codec.Params):

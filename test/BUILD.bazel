@@ -3,23 +3,23 @@ py_test(
     srcs = [
         "test_codec.py",
     ],
-    deps = [
-        "//runner",         
-    ],
     visibility = [
-      "//visibility:public"
+        "//visibility:public",
+    ],
+    deps = [
+        "//runner",
     ],
 )
 
 py_test(
-  name = "test_engine",
-  srcs = [
-    "test_engine.py"
-  ],
-  deps = [
-    "//engine"
-  ],
-  visibility = [
-    "//visibility:public"
-  ],
+    name = "test_engine",
+    srcs = [
+        "test_engine.py",
+    ],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "//engine",
+    ],
 )
