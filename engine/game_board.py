@@ -1,6 +1,7 @@
 from runner.codec import Move, Player
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 class GameState(Enum):
     DRAW = 0
@@ -17,6 +18,23 @@ def opposing_player(player: Player):
     else:
         return Player.PLAYER_1
 
+@dataclass
+class Delta:
+    row_delta: int
+    col_delta: int
+
+@dataclass
+class Coord:
+    row: int
+    col: int
+
+    def apply(self, d: Delta):
+        return Coord(row=self.row + d.row_delta, col=self.col + d.col_delta)
+
+    def in_bounds(self):
+        return self.row >= 0 and self.row < NUM_ROWS and self.col >= 0 and self.col < NUM_COLS
+
+
 class GameBoard:
     def __init__(self):
         self._state = GameState.ONGOING
@@ -31,13 +49,13 @@ class GameBoard:
     def state(self):
         return self._state
 
-    def piece_at(self, row: int, col: int) -> Optional[Player]:
-        assert row >= 0 and col >= 0 and col < NUM_COLS and row < NUM_ROWS
+    def piece_at(self, coord: Coord) -> Optional[Player]:
+        assert coord.in_bounds()
 
-        if row >= len(self.columns[col]):
+        if coord.row >= len(self.columns[coord.col]):
             return None
 
-        return self.columns[col][row]
+        return self.columns[coord.col][coord.row]
 
     def column_space(self, col: int):
         return NUM_ROWS - len(self.columns[col])
@@ -52,7 +70,7 @@ class GameBoard:
         for row in range(NUM_ROWS):
             line = "│"
             for col in range(NUM_COLS):
-                piece = self.piece_at(NUM_ROWS - 1 - row, col)  # Reverse row order for display
+                piece = self.piece_at(Coord(row = NUM_ROWS - 1 - row, col = col))  # Reverse row order for display
                 if piece is None:
                     line += " ."
                 elif piece == Player.PLAYER_1:
@@ -80,6 +98,39 @@ class GameBoard:
         return "\n".join(lines)
 
 
+    def _check_win(self, pos: Coord):
+        planes = (
+            Delta(0, 1), Delta(1, 0), 
+            Delta(1, 1), Delta(-1, -1)
+    )
+
+        def check_for_win(start_pos: Coord, delta: Delta):
+            def streak_continues(pos: Coord) -> bool:
+                if not pos.in_bounds():
+                    return False
+
+                piece = self.piece_at(pos)
+
+                return piece is not None and piece == self._side_to_move
+
+            length = 0
+            cur_pos = start_pos
+            while streak_continues(cur_pos):
+                length += 1
+                cur_pos = cur_pos.apply(delta)
+
+            return length >= 4
+
+        def check_plane(plane: Delta):
+            for left_shift in range(0, 5):
+                start = Coord(row = pos.row + left_shift * -plane.row_delta,
+                              col = pos.col + left_shift * -plane.col_delta)
+
+                if check_for_win(start, plane):
+                    return True
+
+        return any(check_plane(p) for p in planes)
+
     def make_move(self, move: Move):
         assert move.column < NUM_COLS
         assert self._state == GameState.ONGOING
@@ -89,35 +140,7 @@ class GameBoard:
 
         self.columns[move.column].append(self._side_to_move)
 
-        planes = (
-            (1, 0), (1,1), (0,1)
-        )
-
-        def streak_continues(cur_row: int, cur_col: int) -> bool:
-            if not (cur_row >= 0 and cur_row < NUM_ROWS and cur_col >= 0 and cur_col < NUM_COLS):
-                return False
-
-            piece = self.piece_at(cur_row, cur_col)
-            return piece != None and piece == self._side_to_move
-
-        def streak_in_direction(row_delta: int, col_delta: int) -> int:
-            cur_row, cur_col = start_row, start_col
-
-            streak = 0
-
-            while(streak_continues(cur_row, cur_col)):
-                cur_row += row_delta
-                cur_col += col_delta
-
-            return streak
-
-        player_wins = False
-
-        for r, c in planes:
-            total_streak = streak_in_direction(r, c) + streak_in_direction(-r, -c) - 1
-            player_wins = player_wins or total_streak >= 4
-        
-        if player_wins:
+        if self._check_win(Coord(row = start_row, col = start_col)):
             if self._side_to_move == Player.PLAYER_1:
                 self._state = GameState.PLAYER_1_WIN
             else:

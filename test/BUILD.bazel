@@ -10,3 +10,16 @@ py_test(
       "//visibility:public"
     ],
 )
+
+py_test(
+  name = "test_engine",
+  srcs = [
+    "test_engine.py"
+  ],
+  deps = [
+    "//engine"
+  ],
+  visibility = [
+    "//visibility:public"
+  ],
+)
