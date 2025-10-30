@@ -1,52 +1,54 @@
+import os
 import asyncio
 import subprocess
 from typing import TypeVar, List, Optional, Coroutine, Any, Union
 import runner.codec as codec
 from datetime import timedelta
-
-T = TypeVar("T")
-
+import time
 
 class Timeout:
     pass
 
+CORE = 2
+
+# os.sched_setaffinity(0, {CORE})
 
 class EngineContainer:
-    def __init__(self, timeout: Optional[timedelta], args: List[str]):
+    def __init__(self, timeout: timedelta, args: List[str]):
         self._loop = asyncio.new_event_loop()
         self._timeout = timeout
 
-        self._engine = self._loop.run_until_complete(
-            asyncio.create_subprocess_exec(
-                *args,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-            )
+        self._engine = subprocess.Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            bufsize=0,
+            start_new_session=True
         )
-
-    async def _with_timeout(self, coro: Coroutine[Any, Any, T]):
-        if self._timeout:
-            try:
-                return await asyncio.wait_for(coro, self._timeout.total_seconds())
-            except:
-                return Timeout()
-        else:
-            return await coro
 
     def read_message(self):
         reader = self._engine.stdout
         assert reader
 
-        with_tm = self._with_timeout(codec.async_decode(reader))
+        before = time.perf_counter_ns()
 
-        return self._loop.run_until_complete(with_tm)
+        msg = codec.decode_buffer(reader)
+
+        after = time.perf_counter_ns()
+
+        time_taken = timedelta(microseconds = (after - before) / 1_000)
+
+        if time_taken > self._timeout:
+            print(f"took too long. {time_taken}. Time allowed: {self._timeout}")
+            return Timeout()
+
+        return msg
 
     def send_move(self, to_move: codec.Move):
         writer = self._engine.stdin
         assert writer
 
         writer.write(codec.MoveMsg.make(to_move).encode())
-        self._loop.run_until_complete(writer.drain())
 
     def send_game_params(self, to_make: codec.Params):
         writer = self._engine.stdin
@@ -54,4 +56,3 @@ class EngineContainer:
 
         msg = codec.ParamsMsg.make(to_make).encode()
         writer.write(msg)
-        return self._loop.run_until_complete(writer.drain())

@@ -12,10 +12,11 @@ class RandomEngine(EngineBase):
 
     def get_move(self):
         assert self._board.state() == GameState.ONGOING
-        while True:
-            cand = randrange(0, NUM_COLS)
-            if self._board.column_space(cand) > 0:
-                return codec.Move(cand)
+        for c in range(NUM_COLS):
+            if self._board.column_space(c) > 0:
+                return codec.Move(c)
+
+        raise RuntimeError("Impossible")
 
     def on_move(self, move: codec.Move):
         assert self._board.state() == GameState.ONGOING

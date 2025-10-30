@@ -9,16 +9,6 @@ py_library(
 )
 
 py_binary(
-    name = "protocol_tester",
-    srcs = [
-        "protocol_tester.py",
-    ],
-    deps = [
-        ":runner",
-    ],
-)
-
-py_binary(
     name = "single_runner",
     srcs = [
         "single_runner.py",
