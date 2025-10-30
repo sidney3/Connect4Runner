@@ -9,10 +9,6 @@ import time
 class Timeout:
     pass
 
-CORE = 2
-
-# os.sched_setaffinity(0, {CORE})
-
 class EngineContainer:
     def __init__(self, timeout: timedelta, args: List[str]):
         self._loop = asyncio.new_event_loop()

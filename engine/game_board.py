@@ -115,7 +115,7 @@ class GameBoard:
             (Delta(0,1), Delta(0,-1)),
             (Delta(1,1), Delta(-1,-1)),
             (Delta(1,0), Delta(-1,0)),
-            (Delta(1,-1), Delta(-1,-1)),
+            (Delta(1,-1), Delta(-1,1)),
         )
 
         def delta_streak(start_pos: Coord, direction: Delta):
