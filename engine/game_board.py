@@ -110,9 +110,15 @@ class GameBoard:
         return "\n".join(lines)
 
     def _check_win(self, pos: Coord):
-        planes = (Delta(0, 1), Delta(1, 0), Delta(1, 1), Delta(-1, -1))
 
-        def check_for_win(start_pos: Coord, delta: Delta):
+        planes = (
+            (Delta(0,1), Delta(0,-1)),
+            (Delta(1,1), Delta(-1,-1)),
+            (Delta(1,0), Delta(-1,0)),
+            (Delta(1,-1), Delta(-1,-1)),
+        )
+
+        def delta_streak(start_pos: Coord, direction: Delta):
             def streak_continues(pos: Coord) -> bool:
                 if not pos.in_bounds():
                     return False
@@ -125,21 +131,11 @@ class GameBoard:
             cur_pos = start_pos
             while streak_continues(cur_pos):
                 length += 1
-                cur_pos = cur_pos.apply(delta)
+                cur_pos = cur_pos.apply(direction)
 
-            return length >= 4
+            return length
 
-        def check_plane(plane: Delta):
-            for left_shift in range(0, 5):
-                start = Coord(
-                    row=pos.row + left_shift * -plane.row_delta,
-                    col=pos.col + left_shift * -plane.col_delta,
-                )
-
-                if check_for_win(start, plane):
-                    return True
-
-        return any(check_plane(p) for p in planes)
+        return any(delta_streak(pos, p1) + delta_streak(pos, p2) - 1 >= 4 for (p1,p2) in planes)
 
     def make_move(self, move: Move):
         assert move.column < NUM_COLS

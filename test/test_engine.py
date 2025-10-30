@@ -15,7 +15,7 @@ class EngineTest(unittest.TestCase):
 
         self.assertEqual(b.state(), GameState.PLAYER_1_WIN)
 
-    def test_diagonal_victory(self):
+    def test_up_diagonal_victory(self):
         b = GameBoard()
 
         """
@@ -46,6 +46,59 @@ class EngineTest(unittest.TestCase):
 
         self.assertEqual(b.state(), GameState.PLAYER_1_WIN)
 
+    def test_down_diagonal_victory(self):
+        b = GameBoard()
+
+        """
+        Y
+        X Y
+        X X Y
+        X Y X Y 
+        """
+
+        b.make_move(Move(0))  # X 
+        b.make_move(Move(1))  # Y
+
+        """
+        X Y
+        """
+
+        b.make_move(Move(0))  # X
+        b.make_move(Move(3))  # Y
+
+        """
+        X
+        X Y   Y
+        """
+
+        b.make_move(Move(0))  # X
+        b.make_move(Move(0))  # Y
+        """
+        Y
+        X
+        X
+        X Y   Y
+        """
+
+        b.make_move(Move(1))  # X
+        b.make_move(Move(1))  # Y
+        """
+        Y
+        X Y
+        X X
+        X Y   Y
+        """
+
+        b.make_move(Move(2))  # X
+        b.make_move(Move(2))  # Y
+        """
+        Y
+        X Y
+        X X Y
+        X Y X Y
+        """
+
+        self.assertEqual(b.state(), GameState.PLAYER_2_WIN)
 
 if __name__ == "__main__":
     unittest.main()
