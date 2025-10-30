@@ -33,12 +33,12 @@ def main(args: argparse.Namespace):
 
         assert isinstance(move_made, codec.Move)
 
-        board.make_move(move_made)
         player_name = (
             "Player 1 (X)"
             if board.side_to_move() == codec.Player.PLAYER_1
             else "Player 2 (O)"
         )
+        board.make_move(move_made)
         print(f"\n🎯 {player_name} places a piece in column {move_made.column}")
 
         print(f"{board}")
