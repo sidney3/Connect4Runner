@@ -6,8 +6,10 @@ import runner.codec as codec
 from datetime import timedelta
 import time
 
+
 class Timeout:
     pass
+
 
 class EngineContainer:
     def __init__(self, timeout: timedelta, args: List[str]):
@@ -19,7 +21,7 @@ class EngineContainer:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             bufsize=0,
-            start_new_session=True
+            start_new_session=True,
         )
 
     def read_message(self):
@@ -32,7 +34,7 @@ class EngineContainer:
 
         after = time.perf_counter_ns()
 
-        time_taken = timedelta(microseconds = (after - before) / 1_000)
+        time_taken = timedelta(microseconds=(after - before) / 1_000)
 
         if time_taken > self._timeout:
             print(f"took too long. {time_taken}. Time allowed: {self._timeout}")

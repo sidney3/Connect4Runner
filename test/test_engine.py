@@ -56,7 +56,7 @@ class EngineTest(unittest.TestCase):
         X Y X Y 
         """
 
-        b.make_move(Move(0))  # X 
+        b.make_move(Move(0))  # X
         b.make_move(Move(1))  # Y
 
         """
@@ -99,6 +99,7 @@ class EngineTest(unittest.TestCase):
         """
 
         self.assertEqual(b.state(), GameState.PLAYER_2_WIN)
+
 
 if __name__ == "__main__":
     unittest.main()

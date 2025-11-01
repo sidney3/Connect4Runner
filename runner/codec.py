@@ -149,8 +149,10 @@ def decode(data: bytes) -> AnyMessage:
         case MessageType.MAKE_MOVE:
             return MoveMsg.decode(hdr, rest).move
 
+
 class Buffer(Protocol):
-    def read(self, n: int) -> bytes:...
+    def read(self, n: int) -> bytes: ...
+
 
 def decode_buffer(buffer: Buffer) -> AnyMessage:
     hdr_bytes = buffer.read(Header.LENGTH)
@@ -162,6 +164,7 @@ def decode_buffer(buffer: Buffer) -> AnyMessage:
             return ParamsMsg.decode(hdr, rest).params
         case MessageType.MAKE_MOVE:
             return MoveMsg.decode(hdr, rest).move
+
 
 class AsyncBuffer(Protocol):
     async def readexactly(self, n: int) -> bytes: ...

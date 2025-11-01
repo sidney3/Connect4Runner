@@ -67,6 +67,9 @@ class GameBoard:
 
         return self.columns[coord.col][coord.row]
 
+    def all_moves(self) -> List[int]:
+        return [c for c in range(NUM_COLS) if (NUM_ROWS - len(self.columns[c]) > 0)]
+
     def column_space(self, col: int):
         return NUM_ROWS - len(self.columns[col])
 
@@ -110,12 +113,11 @@ class GameBoard:
         return "\n".join(lines)
 
     def _check_win(self, pos: Coord):
-
         planes = (
-            (Delta(0,1), Delta(0,-1)),
-            (Delta(1,1), Delta(-1,-1)),
-            (Delta(1,0), Delta(-1,0)),
-            (Delta(1,-1), Delta(-1,1)),
+            (Delta(0, 1), Delta(0, -1)),
+            (Delta(1, 1), Delta(-1, -1)),
+            (Delta(1, 0), Delta(-1, 0)),
+            (Delta(1, -1), Delta(-1, 1)),
         )
 
         def delta_streak(start_pos: Coord, direction: Delta):
@@ -135,7 +137,10 @@ class GameBoard:
 
             return length
 
-        return any(delta_streak(pos, p1) + delta_streak(pos, p2) - 1 >= 4 for (p1,p2) in planes)
+        return any(
+            delta_streak(pos, p1) + delta_streak(pos, p2) - 1 >= 4
+            for (p1, p2) in planes
+        )
 
     def make_move(self, move: Move):
         assert move.column < NUM_COLS
