@@ -3,11 +3,13 @@ import runner.engine_container as engine_container
 import engine.game_board as game_board
 from datetime import timedelta
 import runner.codec as codec
+from runner.timer import Timer
 
 
 def main(args: argparse.Namespace):
     print(f"{args=}")
     timeout = timedelta(milliseconds=args.timeout)
+    timer = Timer()
 
     players = {
         codec.Player.PLAYER_1: engine_container.EngineContainer(timeout, args.player1),
@@ -25,10 +27,12 @@ def main(args: argparse.Namespace):
         friendly = players[board.side_to_move()]
         enemy = players[game_board.opposing_player(board.side_to_move())]
 
+        timer.start()
         move_made = friendly.read_message()
 
-        if isinstance(move_made, engine_container.Timeout):
-            print(f"Player {board.side_to_move()} timed out")
+        time_taken = timer.stop()
+        if time_taken > timeout:
+            print(f"Player {board.side_to_move()} timed out. Took {time_taken}")
             break
 
         assert isinstance(move_made, codec.Move)

@@ -4,11 +4,6 @@ import subprocess
 from typing import TypeVar, List, Optional, Coroutine, Any, Union
 import runner.codec as codec
 from datetime import timedelta
-import time
-
-
-class Timeout:
-    pass
 
 
 class EngineContainer:
@@ -28,19 +23,7 @@ class EngineContainer:
         reader = self._engine.stdout
         assert reader
 
-        before = time.perf_counter_ns()
-
-        msg = codec.decode_buffer(reader)
-
-        after = time.perf_counter_ns()
-
-        time_taken = timedelta(microseconds=(after - before) / 1_000)
-
-        if time_taken > self._timeout:
-            print(f"took too long. {time_taken}. Time allowed: {self._timeout}")
-            return Timeout()
-
-        return msg
+        return codec.decode_buffer(reader)
 
     def send_move(self, to_move: codec.Move):
         writer = self._engine.stdin

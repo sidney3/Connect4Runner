@@ -3,7 +3,7 @@ import struct
 import datetime
 from typing import Self, List, Protocol
 from enum import Enum
-from typing import BinaryIO, Union
+from typing import IO, Union
 from io import BytesIO
 
 
@@ -150,11 +150,7 @@ def decode(data: bytes) -> AnyMessage:
             return MoveMsg.decode(hdr, rest).move
 
 
-class Buffer(Protocol):
-    def read(self, n: int) -> bytes: ...
-
-
-def decode_buffer(buffer: Buffer) -> AnyMessage:
+def decode_buffer(buffer: IO[bytes]) -> AnyMessage:
     hdr_bytes = buffer.read(Header.LENGTH)
     hdr = Header.decode(hdr_bytes)
     rest = buffer.read(hdr.remaining_message_length())

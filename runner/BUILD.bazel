@@ -4,6 +4,7 @@ py_library(
         "__init__.py",
         "codec.py",
         "engine_container.py",
+        "timer.py",
     ],
     visibility = ["//visibility:public"],
 )
