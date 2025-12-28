@@ -12,8 +12,8 @@ def main(args: argparse.Namespace):
     timer = Timer()
 
     players = {
-        codec.Player.PLAYER_1: engine_container.EngineContainer(timeout, args.player1),
-        codec.Player.PLAYER_2: engine_container.EngineContainer(timeout, args.player2),
+        codec.Player.PLAYER_1: engine_container.EngineContainer(args.player1),
+        codec.Player.PLAYER_2: engine_container.EngineContainer(args.player2),
     }
 
     for player_type, player in players.items():

@@ -7,9 +7,8 @@ from datetime import timedelta
 
 
 class EngineContainer:
-    def __init__(self, timeout: timedelta, args: List[str]):
+    def __init__(self, args: List[str]):
         self._loop = asyncio.new_event_loop()
-        self._timeout = timeout
 
         self._engine = subprocess.Popen(
             args,

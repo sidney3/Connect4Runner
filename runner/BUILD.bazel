@@ -4,6 +4,7 @@ py_library(
         "__init__.py",
         "codec.py",
         "engine_container.py",
+        "run_one.py",
         "timer.py",
     ],
     visibility = ["//visibility:public"],
@@ -13,6 +14,17 @@ py_binary(
     name = "single_runner",
     srcs = [
         "single_runner.py",
+    ],
+    deps = [
+        ":runner",
+        "//engine",
+    ],
+)
+
+py_binary(
+    name = "elo_cli",
+    srcs = [
+        "elo_cli.py",
     ],
     deps = [
         ":runner",
